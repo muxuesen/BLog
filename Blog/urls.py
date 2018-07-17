@@ -24,6 +24,7 @@ urlpatterns = [
     path('', views.index),
     path('digg/', views.digg),
     path('comment/', views.comment),
+    path('code/', views.code),
 
     path('backend/', views.backend),
     path('backend/add_article/', views.add_article),

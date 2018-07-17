@@ -2,16 +2,37 @@ from django.shortcuts import render,redirect,HttpResponse
 from django.contrib import auth
 from app01.models import Article,UserInfo,Tag,Category,Comment,ArticleUpDown,Article2Tag
 from django.db.models import Count
+from untils.code import check_code
+from io import BytesIO
 # Create your views here.
+def code(request):
+   '''
+   生成图片
+   :param request:
+   :return:
+   '''
+   img,random_code = check_code()
+   request.session['random_code'] = random_code
+
+   stream = BytesIO()
+   img.save(stream, 'png')
+   return HttpResponse(stream.getvalue())
+
 def login(request):
-    if request.method=="POST":
-        user = request.POST.get("user")
-        pwd = request.POST.get("pwd")
-        user = auth.authenticate(username=user,password=pwd)
-        if user:
-            auth.login(request,user)
-            return redirect("/index/")
-    return render(request,"login.html")
+    if request.method == "GET":
+        return render(request,"login.html")
+    user = request.POST.get("user")
+    pwd = request.POST.get("pwd")
+    code =request.POST.get("code")
+    if code.upper() != request.session["random_code"].upper():
+        return render(request,"login.html",{"msg":"验证码输入错误"})
+
+
+    user = auth.authenticate(username=user,password=pwd)
+    if user:
+        auth.login(request,user)
+        return redirect("/index/")
+    return render(request,"login.html",{"msg":"用户名或密码输入错误"})
 
 def index(request):
     article_list = Article.objects.all()
